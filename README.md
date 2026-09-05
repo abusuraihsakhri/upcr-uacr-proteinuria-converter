@@ -1,116 +1,160 @@
 # UPCR UACR Proteinuria Converter
 
-> **Domain:** Computational Biology & AI Drug Discovery  
-> **Reference Guidelines & Standards:** `wwPDB, IUPAC & CLSI Computational Guidelines`
-
-<div align="center">
+> **Domain:** Computational Biology & Clinical Chemistry
+> **Standards:** CLSI, IUPAC
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
-![Audit Trail](https://img.shields.io/badge/Audit-HMAC--SHA256_Tamper--Evident-brightgreen.svg)
-![Zero-PHI Guard](https://img.shields.io/badge/Guard-Zero--PHI_Outbound-blue.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)
-
-</div>
 
 ---
 
-## 📖 What It Does
+## What It Does
 
-Urine Protein-to-Creatinine (UPCR) & UACR Converter
-Converts spot urine protein/albumin and creatinine ratios to estimated 24-hour excretion rates.
+Urine Protein-to-Creatinine (UPCR) & UACR Converter converts spot urine protein/albumin and creatinine ratios to estimated 24-hour excretion rates. Provides clinical classification and recommendations based on calculated scores.
 
-Zero-dependency Python implementation with single and batch evaluation.
+- Single case evaluation via CLI
+- Batch CSV processing
+- FastAPI REST API server
+- HMAC-SHA256 tamper-evident audit trail
+- Zero-PHI outbound guard
+
 Author: Dr. Abu Suraih Sakhri
 License: MIT
 
 ---
 
-## ⚙️ Key Capabilities & Algorithmic Modules
+## Installation
 
-### 🔬 Analytical Functions
+```bash
+# Clone the repository
+git clone https://github.com/abusuraihsakhri/upcr-uacr-proteinuria-converter.git
+cd upcr-uacr-proteinuria-converter
 
-- **`calculate_metrics()`**: Core domain algorithm for upcr-uacr-proteinuria-converter.
-- **`process_single()`** — calculates and validates process_single parameters.
-- **`process_batch()`** — calculates and validates process_batch parameters.
-- **`main()`** — calculates and validates main parameters.
+# Install dependencies
+pip install -r requirements.txt
 
----
-
-## 📐 Mathematical Formulation & Logic
-
-```text
-  score = primary_val
-  rounded_score = round(score, 2)
-  res = calculate_metrics(**kwargs)
-  calc_res = calculate_metrics(**r)
+# Set up environment configuration
+cp .env.example .env
+# Edit .env and set a secure AUDIT_SECRET_KEY
 ```
 
 ---
 
-## 💻 CLI Quickstart & Usage
+## Usage
 
-### 1. Guided Interactive Mode
+### Single Case Evaluation
 ```bash
-python cli.py
+python upcr_uacr.py single --v1 14.5 --v2 4.2 --v3 1.8
 ```
 
-### 2. Direct Parameterized Evaluation
+### Batch CSV Processing
 ```bash
-python cli.py --task-id <value> --target <value> --primary <value> --secondary <value>
+python upcr_uacr.py batch -i sample.csv -o results.csv
 ```
 
-### Parameter Reference
-- `--task-id`: Specifies input measurement or parameter value.
-- `--target`: Specifies input measurement or parameter value.
-- `--primary`: Specifies input measurement or parameter value.
-- `--secondary`: Specifies input measurement or parameter value.
-- `--critical`: Specifies input measurement or parameter value.
-- `--status`: Specifies input measurement or parameter value.
-- `--input`: Specifies input measurement or parameter value.
-- `--output`: Specifies input measurement or parameter value.
+### Enterprise CLI (with audit trail)
+```bash
+# Set audit key first
+export AUDIT_SECRET_KEY="your-secure-key-here"
 
-### Input Data Schema
+# Run audit
+python cli.py audit --task-id TASK-001 --primary 28.5 --secondary 14.2
+
+# Batch processing
+python cli.py batch -i sample.csv -o results.csv
+
+# Verify audit trail
+python cli.py verify-audit
+```
+
+### REST API Server
+```bash
+python cli.py serve --host 127.0.0.1 --port 8000
+```
+
+API Endpoints:
+- `GET /health` - Health check
+- `GET /metrics` - System metrics
+- `POST /api/audit` - Submit task for evaluation
+- `POST /api/chat` - Query supervisory chat
+- `GET /api/audit/logs` - View audit trail
+
+---
+
+## Input Data Schema
 
 | Field | Description | Requirement |
 |:------|:------------|:------------|
-| `Patient_ID` | Parameter / observation metric | Required |
-| `v1` | Parameter / observation metric | Required |
-| `v2` | Parameter / observation metric | Required |
-| `v3` | Parameter / observation metric | Required |
+| `v1` | Primary measurement (urine protein) | Optional (default: 10.0) |
+| `v2` | Secondary measurement (creatinine) | Optional (default: 5.0) |
+| `v3` | Tertiary measurement (albumin) | Optional (default: 2.0) |
 
 ---
 
-## 🛡️ Security & Enterprise Architecture
+## Classification Tiers
 
-* **Zero-PHI Outbound Interceptor:** Active AST and regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition.
-* **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks.
-* **Active Learning Bayesian Calibration:** Dynamic tracker updating worker reliability weights and monitoring Brier calibration drift.
-* **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
+| Score Range | Classification | Recommendation |
+|:------------|:---------------|:---------------|
+| < 10.0 | Low / Standard | Standard monitoring |
+| 10.0 - 24.9 | Moderate / Intermediate | Close observation |
+| >= 25.0 | High / Severe | Urgent clinical intervention |
 
 ---
 
-## 🧪 Testing & Verification
+## Security
 
-Run the automated test suite:
+- **Zero-PHI Outbound Guard:** AST and regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers
+- **HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation
+- **Input Validation:** All numeric inputs validated for type, finiteness, and non-negativity
+- **Secure Defaults:** No hardcoded secrets; AUDIT_SECRET_KEY must be configured via environment
+
+---
+
+## Testing
 
 ```bash
+# Run all tests
 pytest -v
-```
 
-Execute high-throughput batch simulation benchmarks:
-
-```bash
-python simulator.py --tasks 1000 --concurrency 8
+# Run specific test files
+pytest test_upcr_uacr.py -v
+pytest tests/ -v
 ```
 
 ---
 
-## 🐳 Container Deployment
+## Docker Deployment
 
 ```bash
+# Build and run with Docker Compose
+docker-compose up --build
+
+# Or build and run manually
 docker build -t upcr-uacr-proteinuria-converter .
-docker run -p 8000:8000 upcr-uacr-proteinuria-converter
+docker run -p 8000:8000 --env-file .env upcr-uacr-proteinuria-converter
+```
+
+---
+
+## Project Structure
+
+```
+upcr-uacr-proteinuria-converter/
+├── upcr_uacr.py          # Core conversion algorithm & CLI
+├── cli.py                # Enterprise CLI with audit trail
+├── enrichment.py         # Enrichment feature engines
+├── simulator.py          # High-throughput simulation
+├── agents/               # Enterprise agent framework
+│   ├── base.py           # Security, PHI guard, audit trail
+│   ├── models.py         # Pydantic data models
+│   ├── supervisor.py     # Multi-agent orchestrator
+│   ├── workers.py        # Specialized evaluation workers
+│   ├── api.py            # FastAPI REST endpoints
+│   └── ...
+├── tests/                # Test suite
+├── web/                  # Web dashboard
+├── requirements.txt      # Python dependencies
+├── Dockerfile            # Container build
+└── docker-compose.yml    # Container orchestration
 ```
