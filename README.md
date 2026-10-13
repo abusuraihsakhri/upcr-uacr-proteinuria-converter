@@ -1,160 +1,94 @@
-# UPCR UACR Proteinuria Converter
+# UPCR / UACR Proteinuria Converter
 
-> **Domain:** Computational Biology & Clinical Chemistry
-> **Standards:** CLSI, IUPAC
+Calculate urine protein-to-creatinine ratio (UPCR, also called PCR) and urine albumin-to-creatinine ratio (UACR, also called ACR) from spot urine measurements. Convert either measured ratio between **mg/g creatinine** and **mg/mmol creatinine**.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
+## Features
 
----
+- Static, responsive browser calculator in `web/`; no backend or Python runtime is required.
+- Single-case and batch CSV calculations in dependency-free Python.
+- Optional estimated 24-hour albumin/protein excretion **only** when an independently determined creatinine excretion (g/day) is supplied.
+- KDIGO albuminuria categories (A1, A2, A3) calculated from **UACR only**.
+- CSV result export in browser and CLI; input validation and assay-discordance warnings.
+- Optional FastAPI endpoint `POST /api/convert`.
 
-## What It Does
+**Important:** UPCR and UACR are different measurements. One cannot be calculated from the other without additional information (such as the urine albumin fraction). Neither spot ratio is a measured 24-hour urine collection. This calculator is for research, education, and supporting interpretation; it does not diagnose disease or prescribe treatment.
 
-Urine Protein-to-Creatinine (UPCR) & UACR Converter converts spot urine protein/albumin and creatinine ratios to estimated 24-hour excretion rates. Provides clinical classification and recommendations based on calculated scores.
+## Browser application
 
-- Single case evaluation via CLI
-- Batch CSV processing
-- FastAPI REST API server
-- HMAC-SHA256 tamper-evident audit trail
-- Zero-PHI outbound guard
-
-Author: Dr. Abu Suraih Sakhri
-License: MIT
-
----
-
-## Installation
+Open `web/index.html` in a modern browser, or run a local static server:
 
 ```bash
-# Clone the repository
-git clone https://github.com/abusuraihsakhri/upcr-uacr-proteinuria-converter.git
-cd upcr-uacr-proteinuria-converter
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up environment configuration
-cp .env.example .env
-# Edit .env and set a secure AUDIT_SECRET_KEY
+python -m http.server 8001 --directory web
 ```
 
----
+Then open `http://localhost:8001`. Select **urine concentrations** (all mg/dL) or **measured ratios** (mg/g or mg/mmol). Enter only measurements you have. The results include both ratio units and, when relevant, albuminuria classification.
 
-## Usage
+The GitHub Pages deployment workflow is in `.github/workflows/pages.yml`. A public Pages URL should be published only after the repository's GitHub Pages configuration and successful live deployment have been verified.
 
-### Single Case Evaluation
+## Python CLI
+
+Requires Python 3.10+; core ratio calculations have no third-party dependencies.
+
 ```bash
-python upcr_uacr.py single --v1 14.5 --v2 4.2 --v3 1.8
-```
-
-### Batch CSV Processing
-```bash
+python upcr_uacr.py single --protein-mg-dl 20 --albumin-mg-dl 5 --creatinine-mg-dl 100
+python upcr_uacr.py single --uacr-mg-g 30
 python upcr_uacr.py batch -i sample.csv -o results.csv
 ```
 
-### Enterprise CLI (with audit trail)
+In the first example, UPCR = 200 mg/g and UACR = 50 mg/g (KDIGO A2). The batch CSV headers are `protein_mg_dl`, `albumin_mg_dl`, `creatinine_mg_dl`, `upcr_mg_g`, `uacr_mg_g`, and optionally `creatinine_g_day`. At least one protein/albumin measurement or pre-calculated ratio is necessary. Other columns are retained in the output. Use measurements from the same specimen when calculating both ratios.
+
+For the optional API:
+
 ```bash
-# Set audit key first
-export AUDIT_SECRET_KEY="your-secure-key-here"
-
-# Run audit
-python cli.py audit --task-id TASK-001 --primary 28.5 --secondary 14.2
-
-# Batch processing
-python cli.py batch -i sample.csv -o results.csv
-
-# Verify audit trail
-python cli.py verify-audit
-```
-
-### REST API Server
-```bash
+python -m pip install -r requirements.txt
 python cli.py serve --host 127.0.0.1 --port 8000
 ```
 
-API Endpoints:
-- `GET /health` - Health check
-- `GET /metrics` - System metrics
-- `POST /api/audit` - Submit task for evaluation
-- `POST /api/chat` - Query supervisory chat
-- `GET /api/audit/logs` - View audit trail
+```bash
+curl -X POST http://127.0.0.1:8000/api/convert \
+  -H "Content-Type: application/json" \
+  -d '{"albumin_mg_dl":5,"creatinine_mg_dl":100}'
+```
 
----
+The older `cli.py audit`, `cli.py chat`, agent and enrichment modules are retained for backward compatibility, but implement **demonstration-only thresholds and mocked responses**. They are not validated clinical decision support, clinical-grade de-identification, or a production security platform. Deploy the audit API only in a suitably restricted environment and configure `AUDIT_SECRET_KEY` for audit logging.
 
-## Input Data Schema
+## Methods and clinical interpretation
 
-| Field | Description | Requirement |
-|:------|:------------|:------------|
-| `v1` | Primary measurement (urine protein) | Optional (default: 10.0) |
-| `v2` | Secondary measurement (creatinine) | Optional (default: 5.0) |
-| `v3` | Tertiary measurement (albumin) | Optional (default: 2.0) |
+For a matched urine specimen:
 
----
+```text
+ratio (mg/g creatinine) = analyte (mg/dL) / creatinine (mg/dL) × 1000
+ratio (mg/mmol creatinine) = ratio (mg/g) × 0.11312
+estimated analyte (mg/day) = ratio (mg/g) × supplied creatinine excretion (g/day)
+```
 
-## Classification Tiers
+Albuminuria (from UACR, mg/g):
 
-| Score Range | Classification | Recommendation |
-|:------------|:---------------|:---------------|
-| < 10.0 | Low / Standard | Standard monitoring |
-| 10.0 - 24.9 | Moderate / Intermediate | Close observation |
-| >= 25.0 | High / Severe | Urgent clinical intervention |
+| Category | UACR | Description |
+| --- | --- | --- |
+| A1 | <30 | Normal to mildly increased |
+| A2 | 30 to <300 | Moderately increased |
+| A3 | ≥300 | Severely increased |
 
----
+Classification thresholds apply to UACR, **not** an arbitrary weighted score or UPCR. Clinical interpretation depends on persistence, eGFR, history, and biological and analytical variation.
 
-## Security
+References: [KDIGO CKD evaluation and management](https://kdigo.org/guidelines/ckd-evaluation-and-management/) and [NIDDK urine albumin assessment](https://www.niddk.nih.gov/health-information/professionals/clinical-tools-patient-management/kidney-disease/identify-manage-patients/evaluate-ckd/assess-urine-albumin).
 
-- **Zero-PHI Outbound Guard:** AST and regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers
-- **HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation
-- **Input Validation:** All numeric inputs validated for type, finiteness, and non-negativity
-- **Secure Defaults:** No hardcoded secrets; AUDIT_SECRET_KEY must be configured via environment
+## Privacy and security
 
----
+The browser calculator uses local JavaScript and does not submit measurements to a server or store them in cookies or browser storage. CSV downloads are generated locally. Avoid entering identifying patient data. The optional Python backend and demonstration audit endpoints are separate services and may hold information in server process memory. No regular-expression filter guarantees comprehensive PHI detection or HIPAA compliance.
 
 ## Testing
 
 ```bash
-# Run all tests
-pytest -v
-
-# Run specific test files
-pytest test_upcr_uacr.py -v
-pytest tests/ -v
+python -m pip install -r requirements.txt
+python -m pytest -q
+node --test web/app.test.cjs
+node --check web/app.js
 ```
 
----
+GitHub Actions tests Python 3.10–3.12, browser calculations, and audit-chain tampering. Browser functionality needs no build step or Pyodide runtime.
 
-## Docker Deployment
+## License
 
-```bash
-# Build and run with Docker Compose
-docker-compose up --build
-
-# Or build and run manually
-docker build -t upcr-uacr-proteinuria-converter .
-docker run -p 8000:8000 --env-file .env upcr-uacr-proteinuria-converter
-```
-
----
-
-## Project Structure
-
-```
-upcr-uacr-proteinuria-converter/
-├── upcr_uacr.py          # Core conversion algorithm & CLI
-├── cli.py                # Enterprise CLI with audit trail
-├── enrichment.py         # Enrichment feature engines
-├── simulator.py          # High-throughput simulation
-├── agents/               # Enterprise agent framework
-│   ├── base.py           # Security, PHI guard, audit trail
-│   ├── models.py         # Pydantic data models
-│   ├── supervisor.py     # Multi-agent orchestrator
-│   ├── workers.py        # Specialized evaluation workers
-│   ├── api.py            # FastAPI REST endpoints
-│   └── ...
-├── tests/                # Test suite
-├── web/                  # Web dashboard
-├── requirements.txt      # Python dependencies
-├── Dockerfile            # Container build
-└── docker-compose.yml    # Container orchestration
-```
+MIT — see [LICENSE](LICENSE).
