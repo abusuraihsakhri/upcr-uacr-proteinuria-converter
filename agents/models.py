@@ -1,7 +1,7 @@
 """
 Pydantic v2 schemas and data definitions for Upcr Uacr Proteinuria Converter.
-Domain: AI Drug Discovery, Structural Biology & Wet-Lab Robotics
-Standard: wwPDB / IUPAC / OpenSMILES / ISAC Standards
+Domain: Non-clinical audit-workflow demonstration
+Standard: No validated clinical standard is implemented
 """
 import datetime
 from enum import Enum
@@ -39,7 +39,7 @@ class AgentAlert(BaseModel):
     summary: str
     technical_details: str
     actionable_remediation: str
-    standard_reference: str = "wwPDB / IUPAC / OpenSMILES / ISAC Standards"
+    standard_reference: str = "Demonstration only — not clinical standards"
     timestamp: str = Field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
@@ -49,7 +49,7 @@ class AgentAlert(BaseModel):
 class ConsensusDossier(BaseModel):
     dossier_id: str
     system_slug: str = "upcr-uacr-proteinuria-converter"
-    domain: str = "AI Drug Discovery, Structural Biology & Wet-Lab Robotics"
+    domain: str = "Non-clinical audit-workflow demonstration"
     task_id: str
     target_identifier: str
     overall_urgency: UrgencyLevel
