@@ -1,40 +1,45 @@
-name: Upcr Uacr Proteinuria Converter CI/CD & Security Verification
+name: Tests and security checks
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ master, main, "audit/**" ]
   pull_request:
     branches: [ master, main ]
 
+permissions:
+  contents: read
+
 jobs:
-  test-and-audit:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install fastapi uvicorn pydantic pytest
-
-    - name: Run Pytest Suite
-      run: |
-        pytest -v
-
-    - name: Security SAST & Zero-PHI Audit
-      run: |
-        python -c "
-        from agents.base import PHIGuard, AuditLogger
-        import pytest
-        assert AuditLogger.verify_integrity() is True
-        print('Security & Zero-PHI Audit Passed!')
-        "
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Generate ephemeral audit key
+        run: echo "AUDIT_SECRET_KEY=$(python -c 'import secrets; print(secrets.token_hex(32))')" >> "$GITHUB_ENV"
+      - name: Python tests
+        run: python -m pytest -q
+      - name: Validate signed audit chain and tampering detection
+        run: |
+          python - <<'PY'
+          from agents.base import AuditTrail
+          audit = AuditTrail()
+          audit.log("test", "test", "test", {"status": "ok"})
+          assert audit.verify_integrity()
+          audit.logs[0]["event_type"] = "tampered"
+          assert not audit.verify_integrity()
+          print("Audit HMAC validation passed")
+          PY
+      - name: Browser calculator tests
+        run: node --test web/app.test.cjs
+      - name: Syntax checks
+        run: |
+          python -m compileall -q upcr_uacr.py agents cli.py enrichment.py simulator.py
+          node --check web/app.js
