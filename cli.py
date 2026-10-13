@@ -8,6 +8,7 @@ import sys
 from agents.models import SystemTaskPayload
 from agents.supervisor import SystemSupervisor
 from agents.base import AuditLogger
+from upcr_uacr import process_batch, INPUT_FIELDS
 
 supervisor = SystemSupervisor(model_provider="mock")
 
@@ -56,7 +57,7 @@ def main(argv=None):
         dossier = supervisor.process_task(payload)
         print("=" * 80)
         print(f"  UPCR UACR PROTEINURIA CONVERTER")
-        print(f"  Domain: AI Drug Discovery, Structural Biology & Wet-Lab Robotics | Standard: wwPDB / IUPAC / OpenSMILES / ISAC Standards")
+        print(f"  Legacy demonstration only — thresholds are not clinical guidance")
         print(f"  Dossier ID: {dossier.dossier_id} | Urgency: [{dossier.overall_urgency.value}]")
         print("=" * 80)
         for a in dossier.alerts:
@@ -84,6 +85,10 @@ def main(argv=None):
             reader = csv.DictReader(f)
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
+        if set(fieldnames).intersection(INPUT_FIELDS[:5]):
+            count = process_batch(args.input, args.output)
+            print(f"Processed {count} urine ratio records -> {args.output}")
+            return 0
 
         out_fields = fieldnames + ["overall_urgency", "integrity_status", "total_alerts", "audit_hash"]
         out_rows = []
@@ -94,7 +99,7 @@ def main(argv=None):
                 primary_metric=float(r.get("primary_metric", 15.0)),
                 secondary_metric=float(r.get("secondary_metric", 5.0)),
                 status_descriptor=r.get("status_descriptor", "NOMINAL"),
-                is_critical_flag=bool(r.get("is_critical_flag", False)),
+                is_critical_flag=str(r.get("is_critical_flag", "false")).strip().lower() in ("true", "1", "yes"),
             )
             dossier = supervisor.process_task(payload)
             row_dict = dict(r)

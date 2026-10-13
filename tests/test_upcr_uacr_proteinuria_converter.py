@@ -63,3 +63,21 @@ def test_supervisor_consensus_and_audit():
     assert main(["audit", "--task-id", "CLI-TEST-01"]) == 0
     assert main(["chat", "Explain", "specifications"]) == 0
     assert main(["verify-audit"]) == 0
+
+def test_audit_integrity_detects_content_tampering():
+    from agents.base import AuditTrail
+    trail = AuditTrail(secret_key="ephemeral-test-key")
+    trail.log("tester", "test", "CHECK", {"value": 1})
+    assert trail.verify_integrity()
+    copied = trail.get_trail()
+    copied[0]["event_type"] = "CHANGED"
+    assert trail.verify_integrity()
+    trail.logs[0]["event_type"] = "CHANGED"
+    assert not trail.verify_integrity()
+
+
+def test_convert_api_is_explicit_and_no_secret_required():
+    from agents.api import UrineRatioRequest, api_convert
+    out = api_convert(UrineRatioRequest(albumin_mg_dl=5, creatinine_mg_dl=100))
+    assert out["uacr_mg_g"] == 50
+    assert out["upcr_mg_g"] is None

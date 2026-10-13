@@ -1,236 +1,171 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upcr Uacr Proteinuria Converter — Operations Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #090d16;
-            --card: #111827;
-            --border: #1f293d;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
-            --text: #f3f4f6;
-            --text-muted: #9ca3af;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .header-title h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--accent-glow);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: #0d1322;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        .btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #2563eb; }
-        .terminal {
-            background: #060911;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: #10b981;
-            height: 380px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .metric-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        .metric-val { font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Calculate urine protein-to-creatinine and albumin-to-creatinine ratios in mg/g and mg/mmol, entirely in your browser.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>UPCR / UACR urine ratio calculator</title>
+  <style>
+    :root {color-scheme:dark; --bg:#0a1020; --surface:#121c30; --border:#2a3952; --text:#f0f5fb; --muted:#b7c7d8; --accent:#7db5fb; --focus:#f6d47d; --error:#f3a8ad}
+    *{box-sizing:border-box}
+    [hidden]{display:none!important}
+    body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+    main{max-width:1050px;margin:0 auto;padding:30px 20px 52px}
+    header{margin-bottom:22px}
+    h1{font-size:clamp(1.6rem,3vw,2.35rem);line-height:1.2;margin:0 0 10px;letter-spacing:-.025em}
+    h2{font-size:1.18rem;margin:0 0 18px}
+    h3{font-size:1rem;margin:0 0 5px}
+    p{margin:0 0 14px}
+    .lede,.hint,.secondary{color:var(--muted)}
+    .lede{max-width:800px}
+    .layout{display:grid;grid-template-columns:1.05fr 1fr;gap:20px;align-items:start}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px}
+    label{display:block;font-weight:650;margin-bottom:7px}
+    select,input{width:100%;border:1px solid #718198;border-radius:8px;background:#0b1425;color:var(--text);padding:11px 12px;font:inherit}
+    input::placeholder{color:#8797ad}
+    input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+    .field{margin:0 0 18px}
+    .hint{font-size:.86rem;margin:5px 0 0}
+    .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+    button{font:inherit;border:1px solid transparent;border-radius:8px;padding:12px 16px;cursor:pointer;font-weight:700}
+    button.primary{background:var(--accent);color:#071323;flex:1}
+    button.secondary-button{background:transparent;border-color:#97adc5;color:var(--text)}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .results{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .value{padding:15px;border-radius:10px;background:#091326;border:1px solid var(--border);min-width:0}
+    .number{font-weight:750;font-size:1.17rem;overflow-wrap:anywhere}
+    .small{font-size:.86rem;color:var(--muted);margin:2px 0 0}
+    .section-label{grid-column:1 / -1;color:var(--muted);font-weight:650;margin-top:10px}
+    .callout{border-left:3px solid var(--accent);padding:12px 14px;background:#0b182b;border-radius:4px;margin-top:20px}
+    .warning{border-color:var(--focus)}
+    .error{color:var(--error);background:#31191e;border:1px solid #9b606a;border-radius:8px;padding:12px;margin:15px 0}
+    ul{padding-left:20px;margin:8px 0 0}
+    a{color:#a7cdfd}
+    footer{margin-top:22px;font-size:.91rem;color:var(--muted)}
+    footer p{max-width:950px}
+    @media (max-width:750px){main{padding:22px 12px}.layout{grid-template-columns:1fr}.card{padding:18px}.results{grid-template-columns:1fr 1fr}}
+    @media (max-width:420px){.field-grid,.results{grid-template-columns:1fr}}
+  </style>
+  <script src="app.js" defer></script>
 </head>
 <body>
-
-    <div class="header">
-        <div class="header-title">
-            <h1>Upcr Uacr Proteinuria Converter</h1>
-            <p>Domain: Clinical & Cryptographic AI | Standard: CAP / CLSI / NIST Standards | LabMind-Atlas Architecture</p>
+<main>
+  <header>
+    <h1>UPCR / UACR urine ratio calculator</h1>
+    <p class="lede">Calculate spot urine protein-to-creatinine ratio (UPCR/PCR) and albumin-to-creatinine ratio (UACR/ACR). Convert mg/g ↔ mg/mmol with explicit measurement units.</p>
+    <p class="secondary">Runs locally in this browser · No account, API call, or data upload</p>
+  </header>
+  <div class="layout">
+    <section class="card" aria-labelledby="entry-title">
+      <h2 id="entry-title">Measurements</h2>
+      <form id="calculator" novalidate>
+        <div class="field">
+          <label for="mode">Input method</label>
+          <select id="mode">
+            <option value="concentration">Urine concentrations (mg/dL)</option>
+            <option value="ratio">Measured UPCR / UACR ratios</option>
+          </select>
         </div>
-        <div>
-            <span class="badge">Air-Gapped Active</span>
-            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;">Zero-PHI Guard Active</span>
-        </div>
-    </div>
-
-    <div class="metrics-bar">
-        <div class="metric-box">
-            <div class="metric-label">System Status</div>
-            <div class="metric-val" style="color: var(--success);" id="m-status">OPTIMAL</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Tasks Processed</div>
-            <div class="metric-val" id="m-tasks">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Audit Blocks Signed</div>
-            <div class="metric-val" id="m-audit">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">PHI Interceptions</div>
-            <div class="metric-val" style="color: var(--accent);" id="m-phi">0</div>
-        </div>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h2>⚙️ Dispatch Distributed Component Audit</h2>
-            <div class="form-group">
-                <label>Task / Sample ID</label>
-                <input type="text" id="task_id" value="TASK-2026-LIVE-01">
+        <div id="concentration-fields">
+          <div class="field">
+            <label for="creatinine">Urine creatinine (mg/dL)</label>
+            <input type="number" id="creatinine" min="0" step="any" inputmode="decimal" placeholder="e.g., 100">
+            <p class="hint">Required when using concentrations. Must be greater than zero.</p>
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label for="protein">Urine total protein (mg/dL)</label>
+              <input type="number" id="protein" min="0" step="any" inputmode="decimal" placeholder="e.g., 20">
             </div>
-            <div class="form-group">
-                <label>Target Identifier</label>
-                <input type="text" id="target_id" value="SPECIMEN-ALPHA-77">
+            <div class="field">
+              <label for="albumin">Urine albumin (mg/dL)</label>
+              <input type="number" id="albumin" min="0" step="any" inputmode="decimal" placeholder="e.g., 5">
             </div>
-            <div class="form-group">
-                <label>Primary Measurement / Value</label>
-                <input type="number" id="primary_metric" value="29.4" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Secondary Metric / Kinetic Index</label>
-                <input type="number" id="secondary_metric" value="14.8" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Status / Phenotype Descriptor</label>
-                <input type="text" id="status_descriptor" value="DISCORDANT_ANOMALY">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="is_critical" checked> Trigger Emergency / Critical Flag</label>
-            </div>
-            <button class="btn" onclick="runAudit()">Execute Distributed Component Audit</button>
+          </div>
+          <p class="hint">Enter protein, albumin, or both. Use measurements from the same urine specimen.</p>
         </div>
-
-        <div class="card">
-            <h2>📊 Real-Time Consensus Dossier & Audit Log</h2>
-            <div class="terminal" id="outputConsole">// Upcr Uacr Proteinuria Converter Operations Console Ready
-// Connection established with Air-Gapped Supervisor
-// Cryptographic HMAC-SHA256 audit ledger loaded.
-// Ready for live task payload dispatch...</div>
+        <div id="ratio-fields" hidden>
+          <div class="field">
+            <label for="ratio-unit">Ratio unit (both fields)</label>
+            <select id="ratio-unit">
+              <option value="mg/g">mg/g creatinine</option>
+              <option value="mg/mmol">mg/mmol creatinine</option>
+            </select>
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label for="upcr">Measured UPCR</label>
+              <input type="number" id="upcr" min="0" step="any" inputmode="decimal" placeholder="e.g., 200">
+            </div>
+            <div class="field">
+              <label for="uacr">Measured UACR</label>
+              <input type="number" id="uacr" min="0" step="any" inputmode="decimal" placeholder="e.g., 50">
+            </div>
+          </div>
+          <p class="hint">UPCR is total protein; UACR is albumin. One cannot be derived from the other alone.</p>
         </div>
-    </div>
-
-    <script>
-        async function runAudit() {
-            const consoleEl = document.getElementById('outputConsole');
-            consoleEl.innerText = "// Dispatching task across specialized workers...
-// Invoking InvariantQCWorker, SafetyEscalationWorker, ProtocolWorker...";
-
-            const payload = {
-                task_id: document.getElementById('task_id').value,
-                target_identifier: document.getElementById('target_id').value,
-                primary_metric: parseFloat(document.getElementById('primary_metric').value),
-                secondary_metric: parseFloat(document.getElementById('secondary_metric').value),
-                status_descriptor: document.getElementById('status_descriptor').value,
-                is_critical_flag: document.getElementById('is_critical').checked
-            };
-
-            try {
-                const res = await fetch('/api/audit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                consoleEl.innerText = JSON.stringify(data, null, 2);
-                document.getElementById('m-tasks').innerText = parseInt(document.getElementById('m-tasks').innerText) + 1;
-                document.getElementById('m-audit').innerText = parseInt(document.getElementById('m-audit').innerText) + 1;
-            } catch (err) {
-                consoleEl.innerText = "// Offline / Simulation Output:\n" + JSON.stringify({
-                    dossier_id: "DOSSIER-SIM-" + Math.floor(Math.random()*10000),
-                    system: "upcr-uacr-proteinuria-converter",
-                    domain: "Clinical & Cryptographic AI",
-                    task_id: payload.task_id,
-                    overall_urgency: payload.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
-                    integrity_status: "DISCORDANT_ANOMALY",
-                    alerts: [
-                        { worker: "InvariantQCWorker", alert: "Primary metric exceeds upper reference bound" },
-                        { worker: "SafetyEscalationWorker", alert: "Critical emergency interlock flag active" }
-                    ],
-                    audit_hash: "HMAC_SHA256_e83f9a72b941d6c381f9"
-                }, null, 2);
-            }
-        }
-    </script>
+        <div class="field">
+          <label for="daily-creatinine">24-hour creatinine excretion (g/day) — optional</label>
+          <input type="number" id="daily-creatinine" min="0" step="any" inputmode="decimal" placeholder="Only if independently known">
+          <p class="hint">Use only to estimate daily protein/albumin excretion. No default is assumed.</p>
+        </div>
+        <div class="actions">
+          <button type="submit" class="primary">Calculate ratios</button>
+        </div>
+        <p class="error" id="error" role="alert" hidden></p>
+      </form>
+    </section>
+    <section class="card" aria-labelledby="results-title">
+      <h2 id="results-title">Results</h2>
+      <p class="hint" id="empty">Enter measurements and select Calculate ratios.</p>
+      <div id="result" hidden aria-live="polite">
+        <div class="results">
+          <div class="value">
+            <h3>UPCR</h3>
+            <p class="number" id="upcr-result"></p>
+            <p class="small" id="upcr-other"></p>
+          </div>
+          <div class="value">
+            <h3>UACR</h3>
+            <p class="number" id="uacr-result"></p>
+            <p class="small" id="uacr-other"></p>
+          </div>
+          <div class="value">
+            <h3>KDIGO albuminuria</h3>
+            <p class="number" id="classification"></p>
+            <p class="small">Based on UACR only</p>
+          </div>
+          <div class="value">
+            <h3>Albumin / total protein</h3>
+            <p class="number" id="fraction"></p>
+            <p class="small">Requires both UPCR and UACR</p>
+          </div>
+          <p class="section-label">Estimated 24-hour excretion</p>
+          <div class="value">
+            <h3>Total protein</h3>
+            <p class="number" id="daily-protein"></p>
+          </div>
+          <div class="value">
+            <h3>Albumin</h3>
+            <p class="number" id="daily-albumin"></p>
+          </div>
+        </div>
+        <div class="callout warning" id="warnings-panel" hidden><strong>Interpretation notes</strong><ul id="warnings"></ul></div>
+        <div class="actions"><button type="button" class="secondary-button" id="export" disabled>Download result (CSV)</button></div>
+      </div>
+      <div class="callout">
+        <strong>Clinical interpretation</strong>
+        <p class="small">A1: UACR &lt;30 mg/g; A2: 30–299 mg/g; A3: ≥300 mg/g. Results are not a diagnosis or a treatment directive. Confirm persistent albuminuria as clinically indicated.</p>
+      </div>
+    </section>
+  </div>
+  <footer>
+    <p><strong>Method:</strong> Analyte (mg/dL) ÷ creatinine (mg/dL) × 1,000 = mg/g creatinine. Multiply mg/g by 0.11312 to obtain mg/mmol. Estimated mg/day = mg/g × independently supplied creatinine g/day.</p>
+    <p><strong>Limitations:</strong> Spot ratios are affected by biological variability and creatinine excretion. UPCR cannot be converted to UACR without measured albumin or additional assumptions. Do not use the derived 24-hour estimate as a substitute for timed urine collection when indicated.</p>
+    <p>Sources: <a href="https://kdigo.org/guidelines/ckd-evaluation-and-management/" rel="noopener noreferrer" target="_blank">KDIGO CKD guideline</a> · <a href="https://www.niddk.nih.gov/health-information/professionals/clinical-tools-patient-management/kidney-disease/identify-manage-patients/evaluate-ckd/assess-urine-albumin" rel="noopener noreferrer" target="_blank">NIDDK urine albumin assessment</a></p>
+  </footer>
+</main>
 </body>
 </html>
