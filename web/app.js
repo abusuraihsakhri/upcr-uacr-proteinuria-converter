@@ -95,6 +95,7 @@ if (typeof document !== "undefined") {
 
   function render(result) {
     $("result").hidden = false;
+    $("empty").hidden = true;
     $("error").hidden = true;
     $("upcr-result").textContent = display(result.upcr_mg_g, "mg/g");
     $("upcr-other").textContent = display(result.upcr_mg_mmol, "mg/mmol");
