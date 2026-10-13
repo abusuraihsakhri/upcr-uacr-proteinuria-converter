@@ -1,6 +1,6 @@
 """
 Supervisor Orchestrator & Operations Intelligence for Upcr Uacr Proteinuria Converter.
-Domain: AI Drug Discovery, Structural Biology & Wet-Lab Robotics
+Domain: Non-clinical audit-workflow demonstration
 """
 import uuid
 from typing import Dict, Any, List, Optional
@@ -75,5 +75,5 @@ class SystemSupervisor:
 
     def query_supervisory_chat(self, query: str) -> str:
         PHIGuard.assert_no_phi(query)
-        prompt = f"Supervisor inquiry for Upcr Uacr Proteinuria Converter under wwPDB / IUPAC / OpenSMILES / ISAC Standards: {query}"
+        prompt = f"Demonstration-only audit-workflow query (no clinical validation): {query}"
         return self.llm.invoke(prompt)
